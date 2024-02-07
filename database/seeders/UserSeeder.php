@@ -39,7 +39,20 @@ class UserSeeder extends Seeder
             'bio' => 'I am the user of this website',
         ]);
 
-        // création de 6 utilisateurs aléatoires
-        User::factory(6)->create();
+        for ($i = 0; $i < 10; $i++) {
+            DB::table('users')->insert([
+                'firstName' => 'random',
+                'lastName' => 'user',
+                'email' => 'random' . $i . '@example.com',
+                'password' => bcrypt('password'),
+                'role' => 'user',
+                'userSlug' => 'random' . $i,
+                'email_verified_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+                'bio' => 'I am a random user',
+            ]);
+        }
+        
     }
 }
