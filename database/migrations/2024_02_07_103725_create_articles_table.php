@@ -14,6 +14,13 @@ return new class extends Migration
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('articleTitle');
+            $table->text('articleThumbnail');
+            $table->text('articleThumbnailTitle');
+            $table->text('articleContent');
+            $table->foreignId('user_id')->constrained();
+            $table->string('articleSlug')->unique();
+            $table->foreignId('category_id')->constrained();
         });
     }
 
