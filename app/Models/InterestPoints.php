@@ -24,4 +24,19 @@ class InterestPoints extends Model
         'pointPicture_id',
         'pointCategories_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function pointPicture()
+    {
+        return $this->belongsTo(PointPictures::class);
+    }
+
+    public function pointCategories()
+    {
+        return $this->belongsTo(PointCategories::class);
+    }
 }

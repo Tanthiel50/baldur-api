@@ -14,4 +14,9 @@ class PointPictures extends Model
         'picturePath',
         'point_id',
     ];
+
+    public function point()
+    {
+        return $this->belongsTo(InterestPoints::class);
+    }
 }

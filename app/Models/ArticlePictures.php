@@ -14,4 +14,9 @@ class ArticlePictures extends Model
         'picturePath',
         'article_id',
     ];
+
+    public function article()
+    {
+        return $this->belongsTo(Articles::class);
+    }
 }
