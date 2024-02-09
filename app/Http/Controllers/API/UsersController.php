@@ -53,11 +53,14 @@ class UsersController extends Controller
             }
 
             // Gérer le slug
-        $slug = $request->pointSlug ? Str::slug($request->userAvatar) : Str::slug($request->firstName);
+            $slug = $request->userSlug ? Str::slug($request->userSlug) : Str::slug($request->firstName . ' ' . $request->lastName);
 
         // Gérer le thumbnail
-        $thumbnailPath = $request->file('userAvatar')->store('public/images/avatar');
-        $thumbnailPath = Str::replaceFirst('public/', '', $thumbnailPath);
+        $thumbnailPath = 'default.jpg'; // Valeur par défaut
+        if ($request->hasFile('userAvatar')) {
+            $thumbnailPath = $request->file('userAvatar')->store('public/images/avatar');
+            $thumbnailPath = Str::replaceFirst('public/', '', $thumbnailPath);
+        }
 
             $user = User::create([
                 'firstName' => $request->firstName,
