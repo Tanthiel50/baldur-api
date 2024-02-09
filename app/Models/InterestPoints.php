@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class InterestPoints extends Model
 {
@@ -21,7 +24,6 @@ class InterestPoints extends Model
         'pointAdress',
         'pointSpeciality',
         'pointContent',
-        'pointPicture_id',
         'pointCategories_id',
     ];
 
@@ -30,13 +32,11 @@ class InterestPoints extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function pointPicture()
-    {
-        return $this->belongsTo(PointPictures::class);
-    }
 
     public function pointCategories()
     {
         return $this->belongsTo(PointCategories::class);
     }
 }
+
+

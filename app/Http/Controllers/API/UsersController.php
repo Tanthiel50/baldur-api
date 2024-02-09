@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -39,7 +40,8 @@ class UsersController extends Controller
                 'password' => 'required',
                 'role' => 'required',
                 'bio' => 'nullable',
-                'avatar' => 'nullable'
+                'userAvatar' => 'nullable|image',
+                'userSlug' => 'nullable'
             ]);
 
             if ($validationUser->fails()) {
@@ -50,6 +52,13 @@ class UsersController extends Controller
                 ], 400);
             }
 
+            // Gérer le slug
+        $slug = $request->pointSlug ? Str::slug($request->userAvatar) : Str::slug($request->firstName);
+
+        // Gérer le thumbnail
+        $thumbnailPath = $request->file('userAvatar')->store('public/images/avatar');
+        $thumbnailPath = Str::replaceFirst('public/', '', $thumbnailPath);
+
             $user = User::create([
                 'firstName' => $request->firstName,
                 'lastName' => $request->lastName,
@@ -57,18 +66,10 @@ class UsersController extends Controller
                 'password' => bcrypt($request->password),
                 'role' => $request->role,
                 'bio' => $request->bio,
-                'avatar' => $request->avatar
+                'avatar' => $request->avatar,
+                'userSlug' => $slug,
+                'userAvatar' => $thumbnailPath ?? 'default.jpg'
             ]);
-
-            if ($request->hasFile('avatar')) {
-                $file = $request->file('avatar');
-                $file = $file->storeAs('public/images/avatars');
-                $file = str_replace('public/images', '', $file);
-
-                $user->avatar()->create([
-                    'avatarPath' => $file
-                ]);
-            }
 
             return response()->json([
                 'status' => true,
@@ -112,10 +113,10 @@ class UsersController extends Controller
             $validationUser = Validator::make($request->all(), [
                 'firstName' => 'required',
                 'lastName' => 'required',
-                'email' => 'required|email',
                 'role' => 'required',
                 'bio' => 'nullable',
-                'avatar' => 'nullable'
+                'userAvatar' => 'nullable|image',
+                'userSlug' => 'nullable'
             ]);
             if($validationUser->fails()){
                 return response()->json([
@@ -123,14 +124,17 @@ class UsersController extends Controller
                     'message' => $validationUser->errors(),
                     'error' => $validationUser->errors(),
                 ], 400);
-        $filename=null;
-        if ($request->hasFile('avatar')) {
-            $file = $request->file('avatar');
-            $filename = $file->storeAs('public/images/avatars');
-            $filename = str_replace('public/images', '', $filename);
+            }
+
+            $fileName=null;
+
+            if ($request('userAvatar')) {
+                $fileName = uniqid() . '.' .
+                $request->thumbnail->extension();
+                $request->thumbnail->storeAs('public/images/avatar', $fileName);
         }
 
-        $user = User::where('id', $id)->first();
+        $user = User::findOrFail($id);
 
         $user->update([
             'firstName' => $request->firstName,
@@ -138,19 +142,9 @@ class UsersController extends Controller
             'email' => $request->email,
             'role' => $request->role,
             'bio' => $request->bio,
-            'avatar' => $filename
+            'userAvatar' => $fileName,
+            'userSlug' => 'nullable'
         ]);
-
-        if ($request->hasFile('avatar')) {
-            $file = $request->file('avatar');
-            $file = $file->storeAs('public/images/avatars');
-            $file = str_replace('public/images', '', $file);
-
-            $user->avatar()->create([
-                'avatarPath' => $file
-            ]);
-        }
-    }
 
         return response()->json([
             'status' => true,

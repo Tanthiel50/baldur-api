@@ -14,4 +14,9 @@ class ArticleCategories extends Model
         'categorySlug',
         'categoryDescription',
     ];
+
+    public function articles()
+    {
+        return $this->hasMany(Articles::class, 'category_id');
+    }
 }

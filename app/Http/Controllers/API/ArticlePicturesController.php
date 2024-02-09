@@ -15,7 +15,7 @@ class ArticlePicturesController extends Controller
     public function index()
     {
         try {
-            $articlePictures = ArticlePictures::with('article')->orderBy('created_at', 'desc')->get();
+            $articlePictures = ArticlePictures::all();
 
             return response()->json($articlePictures, 200);
         } catch (\Exception $e) {
@@ -34,7 +34,8 @@ class ArticlePicturesController extends Controller
         try{
             $validationArticlePicture = Validator::make($request->all(), [
                 'article_id' => 'required',
-                'picture' => 'required'
+                'picture' => 'required|image',
+                'article_id' => 'required|exists:articles,id',
             ]);
 
             if ($validationArticlePicture->fails()) {
@@ -45,20 +46,20 @@ class ArticlePicturesController extends Controller
                 ], 400);
             }
 
-            $articlePicture = ArticlePictures::create([
-                'article_id' => $request->article_id,
-                'picture' => $request->picture
-            ]);
-
+            $picturePath = null;
             if ($request->hasFile('picture')) {
                 $file = $request->file('picture');
-                $file = $file->storeAs('public/images/article_pictures');
-                $file = str_replace('public/images', '', $file);
-
-                $articlePicture->picture()->create([
-                    'picturePath' => $file
-                ]);
+                $filename = $file->hashName();
+                $file->storeAs('public/images/article_pictures', $filename);
+                $picturePath = 'images/article_pictures/' . $filename;
             }
+
+            $articlePicture = ArticlePictures::create([
+                'article_id' => $request->article_id,
+                'picturePath' => $picturePath,
+                'pictureTitle' => $request->pictureTitle
+            ]);
+
         
     return response()->json([
         'status' => true,
@@ -98,54 +99,26 @@ class ArticlePicturesController extends Controller
     public function update(Request $request, string $id)
     {
         try{
-            $validationArticlePicture = Validator::make($request->all(), [
-                'article_id' => 'required',
-                'picture' => 'required',
-                'pictureTitle' => 'required'
-            ]);
-            if ($validationArticlePicture->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validationArticlePicture->errors(),
-                    'error' => $validationArticlePicture->errors(),
-                ], 400);
-            }
-            if ($request->hasFile('picture')) {
-                $file = $request->file('picture');
-                $file = $file->storeAs('public/images/article_pictures');
-                $file = str_replace('public/images', '', $file);
-            }
-
             $articlePicture = ArticlePictures::where('id', $id)->first();
 
-            $articlePicture->update([
-                'article_id' => $request->article_id,
-                'picture' => $file,
-                'pictureTitle' => $request->pictureTitle
-            ]);
-
-            if ($request->hasFile('picture')) {
-                $file = $request->file('picture');
-                $file = $file->storeAs('public/images/article_pictures');
-                $file = str_replace('public/images', '', $file);
-
-                $articlePicture->picture()->update([
-                    'picturePath' => $file
-                ]);
-            }
-            return response()->json([
-                'status' => true,
-                'message' => 'Article picture updated',
-                'data' => $articlePicture
-            ], 200);
-            
-        }catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            if($request->has('pictureTitle')){
+                $articlePicture->pictureTitle = $request->pictureTitle;
         }
+
+        $articlePicture->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Article picture updated',
+            'data' => $articlePicture
+        ], 200);
+    }catch (\Exception $e){
+        return response()->json([
+            'status' => false,
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Remove the specified resource from storage.

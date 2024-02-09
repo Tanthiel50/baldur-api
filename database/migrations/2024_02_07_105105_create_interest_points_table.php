@@ -25,7 +25,6 @@ return new class extends Migration
             $table->string('pointAdress');
             $table->string('pointSpeciality');
             $table->text('pointContent')->nullable();
-            $table->foreignId('pointPicture_id')->constrained();
             $table->foreignId('pointCategories_id')->constrained();
         });
     }

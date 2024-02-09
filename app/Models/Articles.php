@@ -26,6 +26,7 @@ class Articles extends Model
 
     public function category()
     {
-        return $this->belongsTo(ArticleCategories::class);
+        return $this->belongsTo(ArticleCategories::class, 'category_id');
     }
+
 }

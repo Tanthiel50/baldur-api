@@ -26,9 +26,8 @@ class InterestPointsFactory extends Factory
             'user_id' => $this->faker->numberBetween(1, 10),
             'pointtips' => $this->faker->randomLetter(),
             'pointAdress' => $this->faker->address(),
-            'pointSpeciality' => $this->faker->text(),
+            'pointSpeciality' => $this->faker->randomLetter(),
             'pointContent' => $this->faker->text(),
-            'pointPicture_id' => $this->faker->numberBetween(1, 10),
             'pointCategories_id' => $this->faker->numberBetween(1, 10),
         ];
     }

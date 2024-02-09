@@ -15,8 +15,9 @@ class PointPictures extends Model
         'point_id',
     ];
 
-    public function point()
+
+    public function interestPoints()
     {
-        return $this->belongsTo(InterestPoints::class);
+        return $this->belongsTo(InterestPoints::class, 'point_id');
     }
 }

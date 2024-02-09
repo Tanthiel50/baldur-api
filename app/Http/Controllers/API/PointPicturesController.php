@@ -16,7 +16,7 @@ class PointPicturesController extends Controller
     {
     
         try{
-            $pointPictures = PointPictures::with('interestPoint')->orderBy('created_at', 'desc')->get();
+            $pointPictures = PointPictures::with('interestPoints')->orderBy('created_at', 'desc')->get();
 
             return response()->json($pointPictures, 200);
         }catch (\Exception $e){
@@ -32,12 +32,14 @@ class PointPicturesController extends Controller
      */
     public function store(Request $request)
     {
-        try{
+        try {
+            // Validation pour s'assurer que le point_id est fourni et que l'image est présente
             $validationPointPicture = Validator::make($request->all(), [
-                'interest_point_id' => 'required',
-                'picture' => 'required'
+                'picture' => 'required|image', // Le champ 'picture' représente le fichier image téléchargé
+                'pictureTitle' => 'required|string', // Titre de l'image, optionnel
+                'point_id' => 'required|exists:interest_points,id', // S'assurer que l'ID du point d'intérêt existe si fourni
             ]);
-
+    
             if ($validationPointPicture->fails()) {
                 return response()->json([
                     'status' => false,
@@ -45,28 +47,28 @@ class PointPicturesController extends Controller
                     'error' => $validationPointPicture->errors(),
                 ], 400);
             }
-
-            $pointPicture = PointPictures::create([
-                'interest_point_id' => $request->interest_point_id,
-                'picture' => $request->picture
-            ]);
-
+    
+            $picturePath = null;
             if ($request->hasFile('picture')) {
                 $file = $request->file('picture');
-                $file = $file->storeAs('public/images/point_pictures');
-                $file = str_replace('public/images', '', $file);
-
-                $pointPicture->picture()->create([
-                    'picturePath' => $file
-                ]);
+                $filename = $file->hashName(); // Générer un nom de fichier unique
+                $file->storeAs('public/images/point_pictures', $filename);
+                $picturePath = 'images/point_pictures/' . $filename; // Chemin relatif pour l'accès public
             }
-
+    
+            // Création de l'instance PointPictures avec les données fournies
+            $pointPicture = PointPictures::create([
+                'point_id' => $request->point_id,
+                'pictureTitle' => $request->pictureTitle,
+                'picturePath' => $picturePath, // Utilisez le chemin généré
+            ]);
+    
             return response()->json([
                 'status' => true,
                 'message' => 'Point picture created',
                 'data' => $pointPicture
             ], 201);
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -80,7 +82,7 @@ class PointPicturesController extends Controller
     public function show(string $id)
     {
         try{
-            $pointPicture = PointPictures::with('interestPoint')
+            $pointPicture = PointPictures::with('interestPoints')
             ->where('id', $id)->first();
 
             return response()->json($pointPicture, 200);
@@ -98,46 +100,19 @@ class PointPicturesController extends Controller
     public function update(Request $request, string $id)
     {
         try{
-            $validationPointPicture = Validator::make(['id' => $id], [
-                'interest_point_id' => 'required',
-                'picture' => 'required'
-            ]);
-            if($validationPointPicture->fails()){
-                return response()->json([
-                    'status' => false,
-                    'message' => $validationPointPicture->errors(),
-                    'error' => $validationPointPicture->errors(),
-                ], 400);
-            }
-            if ($request->hasFile('picture')) {
-                $file = $request->file('picture');
-                $file = $file->storeAs('public/images/point_pictures');
-                $file = str_replace('public/images', '', $file);
+            $pointPicture = PointPictures::where('id', $id)->firstOrFail();
+            
+            if ($request->has('pictureTitle')) {
+                $pointPicture->pictureTitle = $request->pictureTitle;
             }
 
-            $pointPicture = PointPictures::where('id', $id)->first();
+            $pointPicture->save();
 
-            $pointPicture->update([
-                'interest_point_id' => $request->interest_point_id,
-                'picture' => $request->picture,
-                'pictureTitle' => $request->pictureTitle
-            ]);
-
-            if ($request->hasFile('picture')) {
-                $file = $request->file('picture');
-                $file = $file->storeAs('public/images/point_pictures');
-                $file = str_replace('public/images', '', $file);
-
-                $pointPicture->picture()->update([
-                    'picturePath' => $file
-                ]);
-                    
-        }
-        return response()->json([
-            'status' => true,
-            'message' => 'Point picture updated',
-            'data' => $pointPicture
-        ], 200);
+            return response()->json([
+                'status' => true,
+                'message' => 'Point picture updated',
+                'data' => $pointPicture
+            ], 200);
     }catch (\Exception $e){
         return response()->json([
             'status' => false,

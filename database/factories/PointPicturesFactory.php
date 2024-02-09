@@ -19,7 +19,7 @@ class PointPicturesFactory extends Factory
         return [
             'pictureTitle' => $this->faker->randomLetter(),
             'picturePath' => 'https://via.placeholder.com/150',
-            'point_id' => $this->faker->numberBetween(1, 10),
+            'point_id' => '1',
         ];
     }
 }

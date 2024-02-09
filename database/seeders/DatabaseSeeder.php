@@ -19,8 +19,8 @@ class DatabaseSeeder extends Seeder
             ArticlesSeeder::class,
             ArticlePicturesSeeder::class,
             PointCategoriesSeeder::class,
-            PointPicturesSeeder::class,
             InterestPointsSeeder::class,
+            PointPicturesSeeder::class,
         ]);
     }
 }

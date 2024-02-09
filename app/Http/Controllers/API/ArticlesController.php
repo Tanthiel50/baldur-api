@@ -38,10 +38,12 @@ class ArticlesController extends Controller
 
             $validationArticle = Validator::make($request->all(), [
                 'articleTitle' => 'required',
-                'articleThumbnail' => 'required',
-                'articleThumbnailTitle' => 'required',
+                'articleThumbnail' => 'required|image',
+                'articleThumbnailTitle' => 'nullable|string',
                 'articleContent' => 'required',
-                'category_id' => 'required'
+                'category_id' => 'required',
+                'user_id' => 'required|exists:users,id',
+                'articleSlug' => 'nullable|string'
             ]);
 
             if ($validationArticle->fails()) {
@@ -52,39 +54,21 @@ class ArticlesController extends Controller
                 ], 400);
             }
 
+            $slug = $request->articleSlug ? Str::slug ($request->articleSlug) : Str::slug($request->articleTitle);
+
+            // Gérer le thumbnail
+            $thumbnailPath = $request->file('articleThumbnail')->store('public/images/article_thumbnails');
+            $thumbnailPath = Str::replaceFirst('public/', '', $thumbnailPath);
+
             $article = Articles::create([
                 'articleTitle' => $request->articleTitle,
                 'articleThumbnail' => $request->articleThumbnail,
-                'articleThumbnailTitle' => $request->articleThumbnailTitle,
+                'articleThumbnailTitle' => $request->articleThumbnailTitle ?? $request->articleTitle,
                 'articleContent' => $request->articleContent,
                 'user_id' => auth()->user()->id,
                 'articleSlug' => Str::slug($request->articleTitle),
                 'category_id' => $request->category_id
             ]);
-
-            if ($request->hasFile('articlePictures')) {
-                foreach ($request->file('articlePictures') as $picture) {
-                    $file = $picture->store('public/images/article_pictures');
-                    $file = str_replace('public/images', '', $file);
-
-                    $article->articlePictures()->create([
-                        'pictureTitle' => $request->articleTitle,
-                        'picturePath' => $file
-                    ]);
-                }
-            }
-
-            if ($request->hasFile('articleThumbnail')) {
-                foreach ($request->file('articleThumbnail') as $picture) {
-                    $file = $picture->store('public/images/article_thumbnails');
-                    $file = str_replace('public/images', '', $file);
-
-                    $article->articlePictures()->create([
-                        'articleThumbnailTitle' => $request->articleTitle,
-                        'articleThumbnail' => $file
-                    ]);
-                }
-            }
 
             return response()->json([
                 'data' => $article,
@@ -102,12 +86,12 @@ class ArticlesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Articles $articles)
+    public function show(Articles $articles, $id)
     {
         try{
-            $article = Articles::with(['user', 'category', 'articlePictures'])
-            ->where('id', $articles->id)
-            ->findOrFail($articles->id);
+            $article = Articles::with(['user', 'category'])
+            ->where('id', $id)
+            ->findOrFail($id);
 
             return response()->json($article, 200);
         }catch (\Exception $e){
@@ -121,16 +105,17 @@ class ArticlesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Articles $articles)
+    public function update(Request $request, Articles $articles, $id)
     {
         try{
 
             $validationArticle = Validator::make($request->all(), [
                 'articleTitle' => 'required',
-                'articleThumbnail' => 'required',
-                'articleThumbnailTitle' => 'required',
+                'articleThumbnail' => 'required|image',
+                'articleThumbnailTitle' => 'nullable|string',
                 'articleContent' => 'required',
-                'category_id' => 'required'
+                'category_id' => 'required',
+                'articleSlug' => 'required'
             ]);
 
             if ($validationArticle->fails()) {
@@ -143,52 +128,22 @@ class ArticlesController extends Controller
 
             $filename = null;
 
-            if ($request->hasFile('articleThumbnail')) {
-                $filename = $request->file('articleThumbnail')->store('public/images/article_thumbnails');
-                $filename = str_replace('public/images', '', $filename);
+            if ($request('articleThumbnail')) {
+                $fileName = uniqid() . '.' . $request->thumbnail->extension();
+                $request->thumbnail->storeAs('public/images/article_thumbnails', $fileName);
             }
 
-            $picturename = null;
-
-            if ($request->hasFile('articlePictures')) {
-                $picturename = $request->file('articlePictures')->store('public/images/article_pictures');
-                $picturename = str_replace('public/images', '', $picturename);
-            }
-
-            $article = Articles::findOrFail($articles->id);
+            $article = Articles::findOrFail($id);
 
             // Recupération de l'article
             $article->update([
                 'articleTitle' => $request->articleTitle,
-                'articleThumbnail' => $request->articleThumbnail,
+                'articleThumbnail' => $fileName ? $fileName : $article->articleThumbnail,
                 'articleThumbnailTitle' => $request->articleThumbnailTitle,
                 'articleContent' => $request->articleContent,
-                'category_id' => $request->category_id
+                'category_id' => $request->category_id,
+                'articleSlug' => $request->articleSlug
             ]);
-
-            if ($request->hasFile('articlePictures')) {
-                foreach ($request->file('articlePictures') as $picture) {
-                    $file = $picture->store('public/images/article_pictures');
-                    $file = str_replace('public/images', '', $file);
-
-                    $article->articlePictures()->create([
-                        'pictureTitle' => $request->articleTitle,
-                        'picturePath' => $file
-                    ]);
-                }
-            }
-
-            if ($request->hasFile('articleThumbnail')) {
-                foreach ($request->file('articleThumbnail') as $picture) {
-                    $file = $picture->store('public/images/article_thumbnails');
-                    $file = str_replace('public/images', '', $file);
-
-                    $article->articlePictures()->create([
-                        'articleThumbnailTitle' => $request->articleTitle,
-                        'articleThumbnail' => $file
-                    ]);
-                }
-            }
 
             return response()->json([
                 'status' => true,

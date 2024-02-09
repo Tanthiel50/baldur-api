@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('pictureTitle');
             $table->text('picturePath');
             $table->foreignId('point_id')->constrained();
-
         });
     }
 

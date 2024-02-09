@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\PointPictures;
 use App\Models\InterestPoints;
+use App\Models\PointCategories;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,7 +20,7 @@ class InterestPointsController extends Controller
     public function index()
     {
         try{
-            $interestPoints = InterestPoints::with('pointPicture', 'pointCategories')->orderBy('created_at', 'desc')->get();
+            $interestPoints = InterestPoints::with('pointCategories')->orderBy('created_at', 'desc')->get();
 
             return response()->json($interestPoints, 200);
         } catch (\Exception $e) {
@@ -30,79 +35,63 @@ class InterestPointsController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        try{
-            $validationInterestPoint = Validator::make($request->all(), [
-                'pointName' => 'required',
-                'pointTitle' => 'required',
-                'pointSlug' => 'required',
-                'pointDescription' => 'required',
-                'pointThumbnail' => 'required',
-                'pointThumbnailTitle' => 'required',
-                'user_id' => 'required',
-                'pointAdress' => 'required',
-                'pointSpeciality' => 'required',
-                'pointPicture_id' => 'required',
-                'pointCategories_id' => 'required'
-            ]);
+{
+    try {
+        // Validation
+        $validator = Validator::make($request->all(), [
+            'pointName' => 'required',
+            'pointTitle' => 'required',
+            'pointSlug' => 'nullable',
+            'pointDescription' => 'required',
+            'pointThumbnail' => 'required|image',
+            'pointThumbnailTitle' => 'nullable|string',
+            'user_id' => 'required|exists:users,id',
+            'pointAdress' => 'required',
+            'pointSpeciality' => 'required',
+            'pointCategories_id' => 'required',
+        ]);
 
-            if ($validationInterestPoint->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validationInterestPoint->errors(),
-                    'error' => $validationInterestPoint->errors(),
-                ], 400);
-            }
-
-            $validationInterestPoint = InterestPoints::create([
-                'pointName' => $request->pointName,
-                'pointTitle' => $request->pointTitle,
-                'pointSlug' => $request->pointSlug,
-                'pointDescription' => $request->pointDescription,
-                'pointThumbnail' => $request->pointThumbnail,
-                'pointThumbnailTitle' => $request->pointThumbnailTitle,
-                'user_id' => $request->user_id,
-                'pointAdress' => $request->pointAdress,
-                'pointSpeciality' => $request->pointSpeciality,
-                'pointPicture_id' => $request->pointPicture_id,
-                'pointCategories_id' => $request->pointCategories_id
-            ]);
-
-            if($request->hasFile('pointPictures')){
-                foreach ($request->file('pointPictures') as $picture) {
-                    $file = $picture->store('public/images/point_pictures');
-                    $file = str_replace('public/images', '', $file);
-
-                    $validationInterestPoint->pointPictures()->create([
-                        'pictureTitle' => $request->pointTitle,
-                        'picturePath' => $file
-                    ]);
-                }
-            }
-
-            if($request->hasFile('pointThumbnail')){
-                foreach ($request->file('pointThumbnail') as $picture) {
-                    $file = $picture->store('public/images/point_thumbnails');
-                    $file = str_replace('public/images', '', $file);
-
-                    $validationInterestPoint->pointPictures()->create([
-                        'pointThumbnailTitle' => $request->pointTitle,
-                        'pointThumbnail' => $file
-                    ]);
-                }
-            }
-            return response()->json([
-                'status' => true,
-                'message' => 'Interest point created',
-                'data' => $validationInterestPoint
-            ], 201);
-        }catch (\Exception $e) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage()
-            ], 500);
+                'message' => $validator->errors(),
+                'error' => $validator->errors(),
+            ], 400);
         }
+
+        // Gérer le slug
+        $slug = $request->pointSlug ? Str::slug($request->pointSlug) : Str::slug($request->pointTitle);
+
+        // Gérer le thumbnail
+        $thumbnailPath = $request->file('pointThumbnail')->store('public/images/point_thumbnails');
+        $thumbnailPath = Str::replaceFirst('public/', '', $thumbnailPath);
+
+        // Création du point d'intérêt
+        $interestPoint = InterestPoints::create([
+            'pointName' => $request->pointName,
+            'pointTitle' => $request->pointTitle,
+            'pointSlug' => $slug,
+            'pointDescription' => $request->pointDescription,
+            'pointThumbnail' => $thumbnailPath,
+            'pointThumbnailTitle' => $request->pointThumbnailTitle ?? $request->pointTitle,
+            'user_id' => auth()->user()->id,
+            'pointAdress' => $request->pointAdress,
+            'pointSpeciality' => $request->pointSpeciality,
+            'pointCategories_id' => $request->pointCategories_id,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Interest point created',
+            'data' => $interestPoint
+        ], 201);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Display the specified resource.
@@ -110,7 +99,7 @@ class InterestPointsController extends Controller
     public function show(string $id)
     {
         try{
-            $interestPoint = InterestPoints::with(['user', 'pointPicture', 'pointCategories', 'pointPictures'])
+            $interestPoint = InterestPoints::with(['user', 'pointCategories'])
             ->where('id', $id)
             ->findOrFail($id);
 
@@ -126,90 +115,69 @@ class InterestPointsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        try{
-            $validationInterestPoint = Validator::make($request->all(), [
+        // dd($request->all());
+        try {
+
+            $validator = Validator::make(request()->all(), [
                 'pointName' => 'required',
                 'pointTitle' => 'required',
                 'pointSlug' => 'required',
                 'pointDescription' => 'required',
-                'pointThumbnail' => 'required',
-                'pointThumbnailTitle' => 'required',
-                'user_id' => 'required',
+                'pointThumbnail' => 'required|image',
+                'pointThumbnailTitle' => 'nullable|string',
                 'pointAdress' => 'required',
                 'pointSpeciality' => 'required',
-                'pointPicture_id' => 'required',
-                'pointCategories_id' => 'required'
+                'pointCategories_id' => 'required',
+                'pointContent' => 'required'
             ]);
-            if ($validationInterestPoint->fails()) {
+
+            if ($validator->fails()) {
                 return response()->json([
                     'status' => false,
-                    'message' => $validationInterestPoint->errors(),
-                    'error' => $validationInterestPoint->errors(),
+                    'message' => $validator->errors(),
+                    'error' => $validator->errors(),
                 ], 400);
             }
 
-            $filename = null;
+            $fileName = null;
 
-            if($request->hasFile('pointThumbnail')){
-                $filename = $request->pointThumbnail->store('public/images/point_thumbnails');
-                $filename = str_replace('public/images', '', $filename);
+            if (request('thumbnail')) {
+                $fileName = uniqid() . '.' . $request->thumbnail->extension();
+                $request->thumbnail->storeAs('public/images/thumbnail', $fileName);
             }
 
-            $interestPoint = InterestPoints::where('id', $id)->first();
+            $interestPointSingle = InterestPoints::findOrFail($id);
 
-            $interestPoint->update([
+            // dd($interestPointSingle);
+
+            $interestPointSingle->update([
                 'pointName' => $request->pointName,
                 'pointTitle' => $request->pointTitle,
                 'pointSlug' => $request->pointSlug,
                 'pointDescription' => $request->pointDescription,
-                'pointThumbnail' => $filename,
+                'pointThumbnail' => $fileName ? $fileName : $interestPointSingle->pointThumbnail,
                 'pointThumbnailTitle' => $request->pointThumbnailTitle,
-                'user_id' => $request->user_id,
                 'pointAdress' => $request->pointAdress,
                 'pointSpeciality' => $request->pointSpeciality,
-                'pointPicture_id' => $request->pointPicture_id,
-                'pointCategories_id' => $request->pointCategories_id
+                'pointCategories_id' => $request->pointCategories_id,
+                'pointContent' => $request->pointContent
             ]);
-
-            if($request->hasFile('pointPictures')){
-                foreach ($request->file('pointPictures') as $picture) {
-                    $file = $picture->store('public/images/point_pictures');
-                    $file = str_replace('public/images', '', $file);
-
-                    $interestPoint->pointPictures()->create([
-                        'pictureTitle' => $request->pointTitle,
-                        'picturePath' => $file
-                    ]);
-                }
-            }
-
-            if($request->hasFile('pointThumbnail')){
-                foreach ($request->file('pointThumbnail') as $picture) {
-                    $file = $picture->store('public/images/point_thumbnails');
-                    $file = str_replace('public/images', '', $file);
-
-                    $interestPoint->pointPictures()->create([
-                        'pointThumbnailTitle' => $request->pointTitle,
-                        'pointThumbnail' => $file
-                    ]);
-                }
-            }
-
+    
             return response()->json([
                 'status' => true,
                 'message' => 'Interest point updated',
-                'data' => $interestPoint
+                'data' => $interestPointSingle
             ], 200);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
             ], 500);
         }
     }
-
+    
     /**
      * Remove the specified resource from storage.
      */

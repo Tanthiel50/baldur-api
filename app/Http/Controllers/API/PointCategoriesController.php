@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\PointCategories;
 use App\Http\Controllers\Controller;
@@ -34,7 +35,8 @@ class PointCategoriesController extends Controller
         try{
             $validationPointCategory = Validator::make($request->all(), [
                 'pointCategoryName' => 'required',
-                'pointCategoryDescription' => 'required'
+                'pointCategoryDescription' => 'required',
+                'pointCategorySlug' => 'nullable'
             ]);
 
             if ($validationPointCategory->fails()) {
@@ -47,7 +49,8 @@ class PointCategoriesController extends Controller
 
             $pointCategory = PointCategories::create([
                 'pointCategoryName' => $request->pointCategoryName,
-                'pointCategoryDescription' => $request->pointCategoryDescription
+                'pointCategoryDescription' => $request->pointCategoryDescription,
+                'pointCategorySlug' => $request->pointCategorySlug
             ]);
             return response()->json([
                 'status' => true,
@@ -85,32 +88,26 @@ class PointCategoriesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        try{
-            $validationPointCategory = Validator::make($request->all(), [
-                'pointCategoryName' => 'required',
-                'pointCategoryDescription' => 'required'
-            ]);
-
-            if ($validationPointCategory->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $validationPointCategory->errors(),
-                    'error' => $validationPointCategory->errors(),
-                ], 400);
+        try {
+            // Pas besoin de valider pour 'nullable' puisqu'on ne met à jour que les champs présents
+            $pointCategory = PointCategories::where('id', $id)->firstOrFail();
+    
+            // Mise à jour conditionnelle
+            if ($request->has('pointCategoryName')) {
+                $pointCategory->pointCategoryName = $request->pointCategoryName;
             }
-
-            $pointCategory = PointCategories::where('id', $id)->first();
-            $pointCategory->update([
-                'pointCategoryName' => $request->pointCategoryName,
-                'pointCategoryDescription' => $request->pointCategoryDescription
-            ]);
-
+            if ($request->has('pointCategoryDescription')) {
+                $pointCategory->pointCategoryDescription = $request->pointCategoryDescription;
+            }
+    
+            $pointCategory->save();
+    
             return response()->json([
                 'status' => true,
                 'message' => 'Point category updated',
                 'data' => $pointCategory
             ], 200);
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
