@@ -131,11 +131,11 @@ class UsersController extends Controller
 
             $fileName=null;
 
-            if ($request('userAvatar')) {
-                $fileName = uniqid() . '.' .
-                $request->thumbnail->extension();
-                $request->thumbnail->storeAs('public/images/avatar', $fileName);
-        }
+        //     if ($request('userAvatar')) {
+        //         $fileName = uniqid() . '.' .
+        //         $request->thumbnail->extension();
+        //         $request->thumbnail->storeAs('public/images/avatar', $fileName);
+        // }
 
         $user = User::findOrFail($id);
 

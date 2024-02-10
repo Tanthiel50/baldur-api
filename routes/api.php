@@ -55,14 +55,14 @@ Route::prefix('/articles')->group(function(){
     Route::delete('/{article}', [ArticlesController::class, 'destroy'])->middleware('auth:sanctum');
 });
 
-Route::prefix('/article-categories')->group(function(){
+Route::prefix('/articlecategories')->group(function(){
     Route::get('/', [ArticleCategoriesController::class, 'index']);
     Route::get('/{category}', [ArticleCategoriesController::class, 'show']);
     Route::post('/', [ArticleCategoriesController::class, 'store'])->middleware('auth:sanctum');
     Route::post('/edit/{category}', [ArticleCategoriesController::class, 'update'])->middleware('auth:sanctum');
     Route::delete('/{category}', [ArticleCategoriesController::class, 'destroy'])->middleware('auth:sanctum');
 });
-Route::prefix('/point-categories')->group(function(){
+Route::prefix('/pointcategories')->group(function(){
     Route::get('/', [PointCategoriesController::class, 'index']);
     Route::get('/{category}', [PointCategoriesController::class, 'show']);
     Route::post('/', [PointCategoriesController::class, 'store'])->middleware('auth:sanctum');
@@ -71,28 +71,28 @@ Route::prefix('/point-categories')->group(function(){
 });
 
 
-Route::prefix('/interest-points')->group(function () {
+Route::prefix('/interestpoints')->group(function () {
     Route::get('/', [InterestPointsController::class, 'index']);
-    Route::get('/{interest-point}', [InterestPointsController::class, 'show']);
+    Route::get('/{interestpoint}', [InterestPointsController::class, 'show']);
     Route::post('/', [InterestPointsController::class, 'store'])->middleware('auth:sanctum');
-    Route::post('/edit/{interest-point}', [InterestPointsController::class, 'update'])->middleware('auth:sanctum');
-    Route::delete('/{interest-point}', [InterestPointsController::class, 'destroy'])->middleware('auth:sanctum');
+    Route::post('/edit/{interestpoint}', [InterestPointsController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/{interestpoint}', [InterestPointsController::class, 'destroy'])->middleware('auth:sanctum');
 });
 
-Route::prefix('/article-pictures')->group(function () {
+Route::prefix('/articlepictures')->group(function () {
     Route::get('/', [ArticlePicturesController::class, 'index'])->middleware('auth:sanctum');
-    Route::get('/{article-picture}', [ArticlePicturesController::class, 'show'])->middleware('auth:sanctum');
+    Route::get('/{articlepicture}', [ArticlePicturesController::class, 'show'])->middleware('auth:sanctum');
     Route::post('/', [ArticlePicturesController::class, 'store'])->middleware('auth:sanctum');
-    Route::post('/edit/{article-picture}', [ArticlePicturesController::class, 'update'])->middleware('auth:sanctum');
-    Route::delete('/{article-picture}', [ArticlePicturesController::class, 'destroy'])->middleware('auth:sanctum');
+    Route::post('/edit/{articlepicture}', [ArticlePicturesController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/{articlepicture}', [ArticlePicturesController::class, 'destroy'])->middleware('auth:sanctum');
 });
 
-Route::prefix('/point-pictures')->group(function () {
+Route::prefix('/pointpictures')->group(function () {
     Route::get('/', [PointPicturesController::class, 'index'])->middleware('auth:sanctum');
-    Route::get('/{point-picture}', [PointPicturesController::class, 'show'])->middleware('auth:sanctum');
+    Route::get('/{pointpicture}', [PointPicturesController::class, 'show'])->middleware('auth:sanctum');
     Route::post('/', [PointPicturesController::class, 'store'])->middleware('auth:sanctum');
-    Route::post('/edit/{point-picture}', [PointPicturesController::class, 'update'])->middleware('auth:sanctum');
-    Route::delete('/{point-picture}', [PointPicturesController::class, 'destroy'])->middleware('auth:sanctum');
+    Route::post('/edit/{pointpicture}', [PointPicturesController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/{pointpicture}', [PointPicturesController::class, 'destroy'])->middleware('auth:sanctum');
 });
 
 

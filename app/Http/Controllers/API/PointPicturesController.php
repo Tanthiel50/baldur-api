@@ -79,11 +79,11 @@ class PointPicturesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
         try{
             $pointPicture = PointPictures::with('interestPoints')
-            ->where('id', $id)->first();
+            ->where('id', $id)->firstOrFail();
 
             return response()->json($pointPicture, 200);
         }catch (\Exception $e){

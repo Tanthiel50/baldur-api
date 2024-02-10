@@ -21,7 +21,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
             $table->string('userSlug')->unique();
-            $table->string('userAvatar')->default('default.jpg');
+            $table->string('userAvatar')->nullable()->default('default.jpg');
             $table->string('role')->default('user');
             $table->text('bio')->nullable();
             
