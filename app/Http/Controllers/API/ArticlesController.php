@@ -6,6 +6,7 @@ use App\Models\Articles;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ArticlesController extends Controller
@@ -16,7 +17,7 @@ class ArticlesController extends Controller
     public function index()
     {
         try {
-            $articles = Articles::with(['user', 'category', 'articlePictures'])
+            $articles = Articles::with(['user', 'category'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -42,7 +43,6 @@ class ArticlesController extends Controller
                 'articleThumbnailTitle' => 'nullable|string',
                 'articleContent' => 'required',
                 'category_id' => 'required',
-                'user_id' => 'required|exists:users,id',
                 'articleSlug' => 'nullable|string'
             ]);
 
@@ -54,18 +54,19 @@ class ArticlesController extends Controller
                 ], 400);
             }
 
-            $slug = $request->articleSlug ? Str::slug ($request->articleSlug) : Str::slug($request->articleTitle);
-
             // Gérer le thumbnail
-            $thumbnailPath = $request->file('articleThumbnail')->store('public/images/article_thumbnails');
-            $thumbnailPath = Str::replaceFirst('public/', '', $thumbnailPath);
+            $thumbnailPath = uniqid() . '.' . request('articleThumbnail')->extension();
+            request('articleThumbnail')->storeAs('public/images/article_thumbnails', $thumbnailPath);
+
+            // $thumbnailPath = $request->file('articleThumbnail')->store('public/images/article_thumbnails');
+            // $thumbnailPath = Str::replaceFirst('public/', '', $thumbnailPath);
 
             $article = Articles::create([
                 'articleTitle' => $request->articleTitle,
-                'articleThumbnail' => $request->articleThumbnail,
+                'articleThumbnail' => $thumbnailPath,
                 'articleThumbnailTitle' => $request->articleThumbnailTitle ?? $request->articleTitle,
                 'articleContent' => $request->articleContent,
-                'user_id' => auth()->user()->id,
+                'user_id' => Auth::id(),
                 'articleSlug' => Str::slug($request->articleTitle),
                 'category_id' => $request->category_id
             ]);
@@ -105,17 +106,16 @@ class ArticlesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Articles $articles, $id)
+    public function update(Request $request, $id)
     {
         try{
 
             $validationArticle = Validator::make($request->all(), [
                 'articleTitle' => 'required',
-                'articleThumbnail' => 'required|image',
+                'articleThumbnail' => 'nullable|image',
                 'articleThumbnailTitle' => 'nullable|string',
                 'articleContent' => 'required',
                 'category_id' => 'required',
-                'articleSlug' => 'required'
             ]);
 
             if ($validationArticle->fails()) {
@@ -126,9 +126,9 @@ class ArticlesController extends Controller
                 ], 400);
             }
 
-            $filename = null;
+            $fileName = null;
 
-            if ($request('articleThumbnail')) {
+            if (request('articleThumbnail')) {
                 $fileName = uniqid() . '.' . $request->thumbnail->extension();
                 $request->thumbnail->storeAs('public/images/article_thumbnails', $fileName);
             }
@@ -142,7 +142,6 @@ class ArticlesController extends Controller
                 'articleThumbnailTitle' => $request->articleThumbnailTitle,
                 'articleContent' => $request->articleContent,
                 'category_id' => $request->category_id,
-                'articleSlug' => $request->articleSlug
             ]);
 
             return response()->json([
@@ -154,17 +153,17 @@ class ArticlesController extends Controller
                 'status' => false,
                 'message' => 'Erreur lors de la mise à jour de l\'article : ' . $e->getMessage()
             ], 500);
-        
+
         }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Articles $articles)
+    public function destroy($articles)
     {
         try{
-            $article = Articles::findOrFail($articles->id);
+            $article = Articles::findOrFail($articles);
             $article->delete();
 
             return response()->json([
