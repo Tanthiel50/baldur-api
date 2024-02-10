@@ -129,8 +129,9 @@ class ArticlesController extends Controller
             $fileName = null;
 
             if (request('articleThumbnail')) {
-                $fileName = uniqid() . '.' . $request->thumbnail->extension();
-                $request->thumbnail->storeAs('public/images/article_thumbnails', $fileName);
+                $file = $request->file('articleThumbnail');
+                $fileName = uniqid() . '.' . $file->extension();
+                $file->storeAs('public/images/article_thumbnails', $fileName);
             }
 
             $article = Articles::findOrFail($id);

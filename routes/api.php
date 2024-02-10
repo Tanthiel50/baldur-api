@@ -27,9 +27,9 @@ use Illuminate\Support\Facades\Auth;
 //     return $request->user();
 // });
 
-Route::prefix('/categories')->group(function () {
-    Route::get('/', [ArticleCategoriesController::class, 'index']);
-});
+// Route::prefix('/categories')->group(function () {
+//     Route::get('/', [ArticleCategoriesController::class, 'index']);
+// });
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', function(){
@@ -73,11 +73,28 @@ Route::prefix('/point-categories')->group(function(){
 
 Route::prefix('/interest-points')->group(function () {
     Route::get('/', [InterestPointsController::class, 'index']);
-    Route::get('/{point}', [InterestPointsController::class, 'show']);
-    Route::post('/interest-points', [InterestPointsController::class, 'store'])->middleware('auth:sanctum');
+    Route::get('/{interest-point}', [InterestPointsController::class, 'show']);
+    Route::post('/', [InterestPointsController::class, 'store'])->middleware('auth:sanctum');
     Route::post('/edit/{interest-point}', [InterestPointsController::class, 'update'])->middleware('auth:sanctum');
     Route::delete('/{interest-point}', [InterestPointsController::class, 'destroy'])->middleware('auth:sanctum');
 });
+
+Route::prefix('/article-pictures')->group(function () {
+    Route::get('/', [ArticlePicturesController::class, 'index'])->middleware('auth:sanctum');
+    Route::get('/{article-picture}', [ArticlePicturesController::class, 'show'])->middleware('auth:sanctum');
+    Route::post('/', [ArticlePicturesController::class, 'store'])->middleware('auth:sanctum');
+    Route::post('/edit/{article-picture}', [ArticlePicturesController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/{article-picture}', [ArticlePicturesController::class, 'destroy'])->middleware('auth:sanctum');
+});
+
+Route::prefix('/point-pictures')->group(function () {
+    Route::get('/', [PointPicturesController::class, 'index'])->middleware('auth:sanctum');
+    Route::get('/{point-picture}', [PointPicturesController::class, 'show'])->middleware('auth:sanctum');
+    Route::post('/', [PointPicturesController::class, 'store'])->middleware('auth:sanctum');
+    Route::post('/edit/{point-picture}', [PointPicturesController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/{point-picture}', [PointPicturesController::class, 'destroy'])->middleware('auth:sanctum');
+});
+
 
 Route::prefix('/security')->group(function () {
     Route::post('/register', [SecurityController::class, 'register'])->middleware('guest')->name('security.register');

@@ -119,21 +119,21 @@ class ArticleCategoriesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ArticleCategories $articleategories)
-    {
-        try{
-            $articleCategory = ArticleCategories::where('id', $articleategories->id)->first();
-            $articleCategory->delete();
+    public function destroy(ArticleCategories $articleCategory, $id) 
+{
+    try {
+        $articleCategory = ArticleCategories::where('id', $id)->first();
+        $articleCategory->delete();
 
-            return response()->json([
-                'status' => true,
-                'message' => 'Category deleted'
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Erreur lors de la suppression de la catégorie : ' . $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'status' => true,
+            'message' => 'Category deleted',
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Erreur lors de la suppression de la catégorie : ' . $e->getMessage(),
+        ], 500);
     }
+}
 }

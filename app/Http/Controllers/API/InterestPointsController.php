@@ -34,7 +34,7 @@ class InterestPointsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, InterestPoints $interestPoints)
 {
     try {
         // Validation
@@ -96,7 +96,7 @@ class InterestPointsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, InterestPoints $interestPoints)
     {
         try{
             $interestPoint = InterestPoints::with(['user', 'pointCategories'])
@@ -115,7 +115,7 @@ class InterestPointsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, InterestPoints $interestPoints)
     {
         // dd($request->all());
         try {
@@ -181,7 +181,7 @@ class InterestPointsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id, InterestPoints $interestPoints)
     {
         try{
             $interestPoint = InterestPoints::where('id', $id)->first();
