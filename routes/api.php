@@ -50,6 +50,7 @@ Route::prefix('/users')->group(function(){
 Route::prefix('/articles')->group(function(){
     Route::get('/', [ArticlesController::class, 'index']);
     Route::get('/{article}', [ArticlesController::class, 'show']);
+    Route::get('/category/{categoryId}', [ArticlesController::class, 'getArticlesByCategory']);
     Route::post('/', [ArticlesController::class, 'store'])->middleware('auth:sanctum');
     Route::post('/edit/{article}', [ArticlesController::class, 'update'])->middleware('auth:sanctum');
     Route::delete('/{article}', [ArticlesController::class, 'destroy'])->middleware('auth:sanctum');

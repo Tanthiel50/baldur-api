@@ -178,4 +178,20 @@ class ArticlesController extends Controller
             ], 500);
         }
     }
+
+    public function getArticlesByCategory($categoryId)
+{
+    try{
+        $articles = Articles::with('category')
+                        ->where('category_id', $categoryId)
+                        ->get();
+
+        return response()->json($articles, 200);
+    }catch(\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Erreur lors de la récupération des articles : ' . $e->getMessage()
+        ], 500);
+    }
+}
 }
