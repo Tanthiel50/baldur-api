@@ -74,6 +74,7 @@ Route::prefix('/pointcategories')->group(function(){
 
 Route::prefix('/interestpoints')->group(function () {
     Route::get('/', [InterestPointsController::class, 'index']);
+    Route::get('/category/{categoryId}', [InterestPointsController::class, 'getInterestPointsByCategory']);
     Route::get('/{interestpoint}', [InterestPointsController::class, 'show']);
     Route::post('/', [InterestPointsController::class, 'store'])->middleware('auth:sanctum');
     Route::post('/edit/{interestpoint}', [InterestPointsController::class, 'update'])->middleware('auth:sanctum');

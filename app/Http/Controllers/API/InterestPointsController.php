@@ -198,4 +198,24 @@ class InterestPointsController extends Controller
             ], 500);
         }
     }
+
+    /**
+ * Display a listing of the resource by category.
+ */
+public function getInterestPointsByCategory($categoryId)
+{
+    try {
+        $interestPoints = InterestPoints::with('pointCategories')
+            ->where('pointCategories_id', $categoryId) // Assurez-vous que c'est le nom correct de la colonne dans la table `interest_points`
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($interestPoints, 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
 }
