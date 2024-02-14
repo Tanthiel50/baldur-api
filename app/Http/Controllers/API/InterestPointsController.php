@@ -43,7 +43,7 @@ class InterestPointsController extends Controller
             'pointTitle' => 'required',
             'pointSlug' => 'nullable',
             'pointDescription' => 'required',
-            'pointThumbnail' => 'required|image',
+            // 'pointThumbnail' => 'required|image',
             'pointThumbnailTitle' => 'nullable|string',
             'user_id' => 'required|exists:users,id',
             'pointAdress' => 'required',
