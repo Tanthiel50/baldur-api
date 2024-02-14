@@ -43,12 +43,13 @@ class InterestPointsController extends Controller
             'pointTitle' => 'required',
             'pointSlug' => 'nullable',
             'pointDescription' => 'required',
-            // 'pointThumbnail' => 'required|image',
+            'pointThumbnail' => 'required|image',
             'pointThumbnailTitle' => 'nullable|string',
             'user_id' => 'required|exists:users,id',
             'pointAdress' => 'required',
             'pointSpeciality' => 'required',
             'pointCategories_id' => 'required',
+            'pointContent' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -78,6 +79,7 @@ class InterestPointsController extends Controller
             'pointAdress' => $request->pointAdress,
             'pointSpeciality' => $request->pointSpeciality,
             'pointCategories_id' => $request->pointCategories_id,
+            'pointContent' => $request->pointContent,
         ]);
 
         return response()->json([
