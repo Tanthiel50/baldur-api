@@ -49,7 +49,8 @@ class InterestPointsController extends Controller
             'pointAdress' => 'required',
             'pointSpeciality' => 'required',
             'pointCategories_id' => 'required',
-            'pointContent' => 'required'
+            'pointContent' => 'required',
+            'pointtips' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
