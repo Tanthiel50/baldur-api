@@ -20,7 +20,7 @@ class InterestPointsController extends Controller
     public function index()
     {
         try{
-            $interestPoints = InterestPoints::with('pointCategories')->orderBy('created_at', 'desc')->get();
+            $interestPoints = InterestPoints::with(['pointCategories', 'user'])->orderBy('created_at', 'desc')->get();
 
             return response()->json($interestPoints, 200);
         } catch (\Exception $e) {
